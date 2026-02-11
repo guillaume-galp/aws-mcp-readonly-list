@@ -36,21 +36,17 @@ Before setting up this MCP server, ensure you have:
 
 ## Installation
 
-1. Clone this repository:
-   ```bash
-   git clone https://github.com/guillaume-galp/aws-mcp-readonly-list.git
-   cd aws-mcp-readonly-list
-   ```
+Install the package globally from npm:
 
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
+```bash
+npm install -g aws-mcp-readonly-lite
+```
 
-3. Build the project:
-   ```bash
-   npm run build
-   ```
+Or use with `npx` without installing (recommended for VSCode MCP setup):
+
+```bash
+npx aws-mcp-readonly-lite
+```
 
 ## Setup in VSCode
 
@@ -105,9 +101,9 @@ export AWS_REGION=us-east-1
   "github.copilot.chat.mcp.enabled": true,
   "github.copilot.chat.mcp.servers": {
     "aws-readonly": {
-      "command": "node",
+      "command": "npx",
       "args": [
-        "/absolute/path/to/aws-mcp-readonly-list/dist/index.js"
+        "aws-mcp-readonly-lite"
       ],
       "env": {
         "AWS_REGION": "us-east-1",
@@ -117,8 +113,6 @@ export AWS_REGION=us-east-1
   }
 }
 ```
-
-**Important**: Replace `/absolute/path/to/aws-mcp-readonly-list` with the actual absolute path to this project directory.
 
 ### Step 4: Verify the Setup
 
@@ -132,9 +126,9 @@ export AWS_REGION=us-east-1
 ### Troubleshooting
 
 **Server not starting?**
-- Check that the path to `dist/index.js` is correct and absolute
-- Verify that `npm run build` completed successfully
+- Ensure `npx` is available (comes with Node.js/npm)
 - Check VSCode Output panel → "GitHub Copilot Chat" for error messages
+- Try running `npx aws-mcp-readonly-lite` in terminal to see if it works
 
 **AWS credentials not working?**
 - Verify credentials with: `aws sts get-caller-identity`
@@ -173,6 +167,26 @@ AWS credentials are obtained via the standard AWS credential chain:
 4. Assumed role (when AWS_ASSUME_ROLE_ARN is set)
 
 ## Development
+
+> **Note**: This section is for developers who want to contribute to or modify the package. If you just want to use the MCP server, follow the [Installation](#installation) instructions above.
+
+### Local Setup
+
+1. Clone this repository:
+   ```bash
+   git clone https://github.com/guillaume-galp/aws-mcp-readonly-list.git
+   cd aws-mcp-readonly-list
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Build the project:
+   ```bash
+   npm run build
+   ```
 
 ### Build
 
