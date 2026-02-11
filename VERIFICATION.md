@@ -108,7 +108,7 @@ src/
   - Lines: 94.92% ✅
 
 ### ✅ Documentation
-- **copilot-instructions.md**: Comprehensive coding rules and guardrails
+- **.github/copilot-instructions.md**: Comprehensive coding rules and guardrails
 - **README.md**: Full usage instructions with examples
 - **.env.example**: Configuration template
 
@@ -180,7 +180,7 @@ All requirements from the problem statement have been successfully implemented:
 11. ✅ Role-based STS assumeRole support
 12. ✅ Comprehensive unit tests with Vitest
 13. ✅ 80%+ code coverage (94.92% achieved)
-14. ✅ copilot-instructions.md with rules and guardrails
+14. ✅ .github/copilot-instructions.md with rules and guardrails
 15. ✅ No raw CLI passthrough
 
 **Project Status: Complete and Ready for Use** ✅

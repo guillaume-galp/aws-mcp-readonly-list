@@ -13,6 +13,199 @@ A Node.js/TypeScript lite AWS MCP (Model Context Protocol) server with read-only
 - ✅ **Comprehensive Tests**: 80%+ code coverage with vitest
 - ✅ **MCP Protocol**: Full compliance with Model Context Protocol
 
+## Table of Contents
+
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Setup in VSCode](#setup-in-vscode)
+- [Configuration](#configuration)
+- [Available Tools](#available-tools)
+- [Development](#development)
+- [Architecture](#architecture)
+- [Security](#security)
+- [License](#license)
+
+## Prerequisites
+
+Before setting up this MCP server, ensure you have:
+
+- **Node.js** >= 18.x installed
+- **npm** >= 9.x installed
+- **AWS credentials** configured (see [AWS Configuration](#configuration))
+- **VSCode** with GitHub Copilot extension (for VSCode setup)
+
+## Installation
+
+1. Clone this repository:
+   ```bash
+   git clone https://github.com/guillaume-galp/aws-mcp-readonly-list.git
+   cd aws-mcp-readonly-list
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Build the project:
+   ```bash
+   npm run build
+   ```
+
+## Setup in VSCode
+
+To use this MCP server with GitHub Copilot in VSCode, follow these steps:
+
+### Step 1: Configure Environment Variables
+
+Create a `.env` file in the project root (or set system environment variables):
+
+```bash
+# Required
+AWS_REGION=us-east-1
+
+# Optional - for role assumption
+# AWS_ASSUME_ROLE_ARN=arn:aws:iam::123456789012:role/ReadOnlyRole
+# AWS_SESSION_DURATION=3600
+
+# Optional - logging
+LOG_LEVEL=info
+```
+
+### Step 2: Configure AWS Credentials
+
+Ensure your AWS credentials are configured. Choose one of these methods:
+
+**Option 1: AWS Credentials File** (Recommended)
+```bash
+# Configure using AWS CLI
+aws configure
+
+# Or manually edit ~/.aws/credentials
+[default]
+aws_access_key_id = YOUR_ACCESS_KEY
+aws_secret_access_key = YOUR_SECRET_KEY
+```
+
+**Option 2: Environment Variables**
+```bash
+export AWS_ACCESS_KEY_ID=YOUR_ACCESS_KEY
+export AWS_SECRET_ACCESS_KEY=YOUR_SECRET_KEY
+export AWS_REGION=us-east-1
+```
+
+### Step 3: Configure MCP in VSCode Settings
+
+1. Open VSCode Settings (JSON) by pressing `Cmd/Ctrl + Shift + P` and selecting **"Preferences: Open User Settings (JSON)"**
+
+2. Add the MCP server configuration to your settings:
+
+```json
+{
+  "github.copilot.chat.mcp.enabled": true,
+  "github.copilot.chat.mcp.servers": {
+    "aws-readonly": {
+      "command": "node",
+      "args": [
+        "/absolute/path/to/aws-mcp-readonly-list/dist/index.js"
+      ],
+      "env": {
+        "AWS_REGION": "us-east-1",
+        "LOG_LEVEL": "info"
+      }
+    }
+  }
+}
+```
+
+**Important**: Replace `/absolute/path/to/aws-mcp-readonly-list` with the actual absolute path to this project directory.
+
+### Step 4: Verify the Setup
+
+1. Restart VSCode to apply the MCP configuration
+2. Open GitHub Copilot Chat in VSCode
+3. The MCP server should now be available and you can use commands like:
+   - "List my S3 buckets"
+   - "Show IAM users in my account"
+   - "Get contents of bucket my-bucket"
+
+### Troubleshooting
+
+**Server not starting?**
+- Check that the path to `dist/index.js` is correct and absolute
+- Verify that `npm run build` completed successfully
+- Check VSCode Output panel → "GitHub Copilot Chat" for error messages
+
+**AWS credentials not working?**
+- Verify credentials with: `aws sts get-caller-identity`
+- Check that AWS_REGION is set correctly
+- Ensure your IAM user/role has read permissions for S3 and IAM
+
+**No MCP tools available in Copilot?**
+- Ensure `github.copilot.chat.mcp.enabled` is set to `true`
+- Restart VSCode after changing settings
+- Check that you have the latest version of GitHub Copilot extension
+
+## Configuration
+
+### Environment Variables
+
+Configure via environment variables or `.env` file:
+
+```bash
+# Required
+AWS_REGION=us-east-1
+
+# Optional - for role assumption
+AWS_ASSUME_ROLE_ARN=arn:aws:iam::123456789012:role/ReadOnlyRole
+AWS_SESSION_DURATION=3600
+
+# Optional - logging
+LOG_LEVEL=info  # error|warn|info|debug
+```
+
+### AWS Credentials
+
+AWS credentials are obtained via the standard AWS credential chain:
+1. Environment variables (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
+2. Shared credentials file (~/.aws/credentials)
+3. IAM role (when running on EC2/ECS)
+4. Assumed role (when AWS_ASSUME_ROLE_ARN is set)
+
+## Development
+
+### Build
+
+```bash
+npm run build
+```
+
+### Run Locally
+
+```bash
+npm start
+```
+
+### Development Mode
+
+```bash
+npm run dev  # Watch mode with auto-rebuild
+```
+
+### Testing
+
+```bash
+npm test                # Run all tests
+npm run test:watch      # Watch mode
+npm run test:coverage   # With coverage report
+```
+
+### Linting
+
+```bash
+npm run lint            # Type check with TypeScript
+```
+
 ## Architecture
 
 ```
@@ -23,67 +216,12 @@ src/
 └── index.ts        # MCP server entry point
 ```
 
-## Installation
+### Clean Architecture Layers
 
-```bash
-npm install
-```
-
-## Configuration
-
-Configure via environment variables:
-
-```bash
-# Required
-export AWS_REGION=us-east-1
-
-# Optional - for role assumption
-export AWS_ASSUME_ROLE_ARN=arn:aws:iam::123456789012:role/ReadOnlyRole
-export AWS_SESSION_DURATION=3600
-
-# Optional - logging
-export LOG_LEVEL=info  # error|warn|info|debug
-```
-
-AWS credentials are obtained via the standard AWS credential chain:
-1. Environment variables (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
-2. Shared credentials file (~/.aws/credentials)
-3. IAM role (when running on EC2/ECS)
-4. Assumed role (when AWS_ASSUME_ROLE_ARN is set)
-
-## Usage
-
-### Build
-
-```bash
-npm run build
-```
-
-### Run
-
-```bash
-npm start
-```
-
-### Development
-
-```bash
-npm run dev  # Watch mode
-```
-
-### Testing
-
-```bash
-npm test                # Run tests
-npm run test:watch      # Watch mode
-npm run test:coverage   # With coverage report
-```
-
-### Linting
-
-```bash
-npm run lint
-```
+1. **Core Layer**: Domain types, configuration, validation schemas, logging
+2. **Services Layer**: AWS SDK interactions and business logic
+3. **Tools Layer**: MCP tool definitions and handlers
+4. **Application Layer**: MCP server setup and request routing
 
 ## Available Tools
 
@@ -277,7 +415,7 @@ This server implements **read-only** access only. No write, update, or delete op
 - **Validation**: All inputs validated with zod
 - **Logging**: Structured logging with winston
 
-See [copilot-instructions.md](./copilot-instructions.md) for detailed coding rules and guardrails.
+See [copilot-instructions.md](./.github/copilot-instructions.md) for detailed coding rules and guardrails.
 
 ## Development Guidelines
 
