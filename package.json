@@ -1,0 +1,44 @@
+{
+  "name": "aws-mcp-readonly-lite",
+  "version": "1.0.0",
+  "description": "Node.js/TypeScript lite AWS MCP tool with readonly permissions to S3 and IAM resources",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "aws-mcp-readonly-lite": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/index.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "tsc --noEmit",
+    "clean": "rm -rf dist coverage"
+  },
+  "keywords": [
+    "mcp",
+    "aws",
+    "s3",
+    "iam",
+    "readonly",
+    "typescript"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@aws-sdk/client-iam": "^3.705.0",
+    "@aws-sdk/client-s3": "^3.705.0",
+    "@aws-sdk/client-sts": "^3.705.0",
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "winston": "^3.17.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "@vitest/coverage-v8": "^2.1.8",
+    "typescript": "^5.7.3",
+    "vitest": "^2.1.8"
+  }
+}
