@@ -1,9 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { IAMTools } from '../tools/iam.tools.js';
-import { IAMService } from '../services/iam.service.js';
 import { createLogger } from '../core/logger.js';
-
-vi.mock('../services/iam.service.js');
 
 describe('IAMTools', () => {
   let iamTools: IAMTools;

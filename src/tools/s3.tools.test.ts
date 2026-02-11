@@ -1,9 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { S3Tools } from '../tools/s3.tools.js';
-import { S3Service } from '../services/s3.service.js';
 import { createLogger } from '../core/logger.js';
-
-vi.mock('../services/s3.service.js');
 
 describe('S3Tools', () => {
   let s3Tools: S3Tools;

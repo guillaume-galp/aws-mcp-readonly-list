@@ -1,5 +1,13 @@
 import type { IAMService } from '../services/iam.service.js';
 import type { Logger } from '../core/logger.js';
+import type {
+  ListUsersResponse,
+  GetUserResponse,
+  ListRolesResponse,
+  GetRoleResponse,
+  ListPoliciesResponse,
+  GetPolicyResponse,
+} from '../core/types.js';
 import {
   ListUsersInputSchema,
   GetUserInputSchema,
@@ -21,7 +29,7 @@ export class IAMTools {
     this.logger = logger;
   }
 
-  async listUsers(args: unknown): Promise<object> {
+  async listUsers(args: unknown): Promise<ListUsersResponse> {
     const input = ListUsersInputSchema.parse(args);
     this.logger.info('Tool: list_iam_users');
 
@@ -39,7 +47,7 @@ export class IAMTools {
     };
   }
 
-  async getUser(args: unknown): Promise<object> {
+  async getUser(args: unknown): Promise<GetUserResponse> {
     const input = GetUserInputSchema.parse(args);
     this.logger.info('Tool: get_iam_user', { userName: input.userName });
 
@@ -54,7 +62,7 @@ export class IAMTools {
     };
   }
 
-  async listRoles(args: unknown): Promise<object> {
+  async listRoles(args: unknown): Promise<ListRolesResponse> {
     const input = ListRolesInputSchema.parse(args);
     this.logger.info('Tool: list_iam_roles');
 
@@ -72,7 +80,7 @@ export class IAMTools {
     };
   }
 
-  async getRole(args: unknown): Promise<object> {
+  async getRole(args: unknown): Promise<GetRoleResponse> {
     const input = GetRoleInputSchema.parse(args);
     this.logger.info('Tool: get_iam_role', { roleName: input.roleName });
 
@@ -87,7 +95,7 @@ export class IAMTools {
     };
   }
 
-  async listPolicies(args: unknown): Promise<object> {
+  async listPolicies(args: unknown): Promise<ListPoliciesResponse> {
     const input = ListPoliciesInputSchema.parse(args);
     this.logger.info('Tool: list_iam_policies', { scope: input.scope });
 
@@ -109,7 +117,7 @@ export class IAMTools {
     };
   }
 
-  async getPolicy(args: unknown): Promise<object> {
+  async getPolicy(args: unknown): Promise<GetPolicyResponse> {
     const input = GetPolicyInputSchema.parse(args);
     this.logger.info('Tool: get_iam_policy', {
       policyArn: input.policyArn,

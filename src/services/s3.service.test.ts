@@ -134,5 +134,15 @@ describe('S3Service', () => {
 
       expect(result).toBe('');
     });
+
+    it('should handle NoSuchBucketPolicy error gracefully', async () => {
+      const error = new Error('The bucket policy does not exist');
+      error.name = 'NoSuchBucketPolicy';
+      mockSend.mockRejectedValue(error);
+
+      const result = await s3Service.getBucketPolicy('my-bucket');
+
+      expect(result).toBe('');
+    });
   });
 });

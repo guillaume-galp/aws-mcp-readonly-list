@@ -51,3 +51,95 @@ export interface IAMPolicyInfo {
   createDate?: Date;
   description?: string;
 }
+
+/**
+ * Tool response types
+ */
+export interface ListBucketsResponse {
+  buckets: Array<{
+    name: string;
+    creationDate?: string;
+  }>;
+  count: number;
+}
+
+export interface ListObjectsResponse {
+  bucket: string;
+  prefix?: string;
+  objects: Array<{
+    key: string;
+    size?: number;
+    lastModified?: string;
+    eTag?: string;
+  }>;
+  count: number;
+}
+
+export interface GetObjectResponse {
+  bucket: string;
+  key: string;
+  content: string;
+}
+
+export interface GetBucketPolicyResponse {
+  bucket: string;
+  policy: object | null;
+}
+
+export interface ListUsersResponse {
+  users: Array<{
+    userName: string;
+    userId: string;
+    arn: string;
+    createDate?: string;
+    passwordLastUsed?: string;
+  }>;
+  count: number;
+}
+
+export interface GetUserResponse {
+  userName: string;
+  userId: string;
+  arn: string;
+  createDate?: string;
+  passwordLastUsed?: string;
+}
+
+export interface ListRolesResponse {
+  roles: Array<{
+    roleName: string;
+    roleId: string;
+    arn: string;
+    createDate?: string;
+    description?: string;
+  }>;
+  count: number;
+}
+
+export interface GetRoleResponse {
+  roleName: string;
+  roleId: string;
+  arn: string;
+  createDate?: string;
+  description?: string;
+}
+
+export interface ListPoliciesResponse {
+  scope: string;
+  policies: Array<{
+    policyName: string;
+    policyId: string;
+    arn: string;
+    createDate?: string;
+    description?: string;
+  }>;
+  count: number;
+}
+
+export interface GetPolicyResponse {
+  policyName: string;
+  policyId: string;
+  arn: string;
+  createDate?: string;
+  description?: string;
+}

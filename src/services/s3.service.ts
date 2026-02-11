@@ -5,6 +5,7 @@ import {
   GetObjectCommand,
   GetBucketPolicyCommand,
 } from '@aws-sdk/client-s3';
+import type { AwsCredentialIdentity } from '@aws-sdk/types';
 import type { Logger } from '../core/logger.js';
 import type { S3BucketInfo, S3ObjectInfo } from '../core/types.js';
 
@@ -15,10 +16,14 @@ export class S3Service {
   private client: S3Client;
   private logger: Logger;
 
-  constructor(region: string, credentials: any, logger: Logger) {
+  constructor(
+    region: string,
+    credentials: AwsCredentialIdentity | undefined,
+    logger: Logger
+  ) {
     this.client = new S3Client({
       region,
-      credentials: credentials || undefined,
+      credentials,
     });
     this.logger = logger;
   }
@@ -112,6 +117,16 @@ export class S3Service {
 
       return response.Policy || '';
     } catch (error) {
+      // Handle the common case where a bucket has no policy
+      if (
+        error instanceof Error &&
+        (error.name === 'NoSuchBucketPolicy' ||
+          (error as any).Code === 'NoSuchBucketPolicy')
+      ) {
+        this.logger.debug('No bucket policy found', { bucket });
+        return '';
+      }
+
       this.logger.error('Failed to get bucket policy', {
         bucket,
         error: error instanceof Error ? error.message : String(error),

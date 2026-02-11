@@ -1,5 +1,11 @@
 import type { S3Service } from '../services/s3.service.js';
 import type { Logger } from '../core/logger.js';
+import type {
+  ListBucketsResponse,
+  ListObjectsResponse,
+  GetObjectResponse,
+  GetBucketPolicyResponse,
+} from '../core/types.js';
 import {
   ListBucketsInputSchema,
   ListObjectsInputSchema,
@@ -19,7 +25,7 @@ export class S3Tools {
     this.logger = logger;
   }
 
-  async listBuckets(args: unknown): Promise<object> {
+  async listBuckets(args: unknown): Promise<ListBucketsResponse> {
     ListBucketsInputSchema.parse(args);
     this.logger.info('Tool: list_s3_buckets');
 
@@ -33,7 +39,7 @@ export class S3Tools {
     };
   }
 
-  async listObjects(args: unknown): Promise<object> {
+  async listObjects(args: unknown): Promise<ListObjectsResponse> {
     const input = ListObjectsInputSchema.parse(args);
     this.logger.info('Tool: list_s3_objects', { bucket: input.bucket });
 
@@ -56,7 +62,7 @@ export class S3Tools {
     };
   }
 
-  async getObject(args: unknown): Promise<object> {
+  async getObject(args: unknown): Promise<GetObjectResponse> {
     const input = GetObjectInputSchema.parse(args);
     this.logger.info('Tool: get_s3_object', {
       bucket: input.bucket,
@@ -75,7 +81,7 @@ export class S3Tools {
     };
   }
 
-  async getBucketPolicy(args: unknown): Promise<object> {
+  async getBucketPolicy(args: unknown): Promise<GetBucketPolicyResponse> {
     const input = GetBucketPolicyInputSchema.parse(args);
     this.logger.info('Tool: get_s3_bucket_policy', {
       bucket: input.bucket,
