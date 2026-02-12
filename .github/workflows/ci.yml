@@ -58,6 +58,17 @@ jobs:
     - name: Install dependencies
       run: npm install
 
+    - name: Debug token presence
+      run: |
+        if [ -z "$NODE_AUTH_TOKEN" ]; then
+          echo "TOKEN IS EMPTY"
+          exit 1
+        else
+          echo "TOKEN IS PRESENT"
+        fi
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
     - name: Extract version from tag
       id: get_version
       run: |
