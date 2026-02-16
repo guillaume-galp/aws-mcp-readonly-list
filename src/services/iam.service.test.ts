@@ -13,6 +13,10 @@ vi.mock('@aws-sdk/client-iam', () => ({
   GetPolicyCommand: vi.fn(),
 }));
 
+vi.mock('@aws-sdk/credential-provider-node', () => ({
+  defaultProvider: vi.fn(() => vi.fn()),
+}));
+
 describe('IAMService', () => {
   let iamService: IAMService;
   let logger: ReturnType<typeof createLogger>;
