@@ -434,6 +434,43 @@ Gets details of a specific IAM policy.
 }
 ```
 
+### STS Tools
+
+#### assume_iam_role
+Assumes an IAM role and returns temporary security credentials.
+
+**Input:**
+```json
+{
+  "roleArn": "arn:aws:iam::123456789012:role/MyRole",
+  "sessionDuration": 3600  // optional, default 3600 (1 hour), range 900-43200
+}
+```
+
+**Output:**
+```json
+{
+  "accessKeyId": "ASIA...",
+  "secretAccessKey": "...",
+  "sessionToken": "...",
+  "expiration": "2024-01-01T01:00:00.000Z"
+}
+```
+
+#### get_sts_caller_identity
+Gets the current STS caller identity (user/role being used).
+
+**Input:** None
+
+**Output:**
+```json
+{
+  "userId": "AIDAI...",
+  "account": "123456789012",
+  "arn": "arn:aws:iam::123456789012:user/my-user"
+}
+```
+
 ## Security
 
 This server implements **read-only** access only. No write, update, or delete operations are supported.
@@ -441,7 +478,7 @@ This server implements **read-only** access only. No write, update, or delete op
 **Allowed Operations:**
 - S3: ListBuckets, ListObjects, GetObject, GetBucketPolicy
 - IAM: ListUsers, GetUser, ListRoles, GetRole, ListPolicies, GetPolicy
-- STS: AssumeRole (for authentication)
+- STS: AssumeRole, GetCallerIdentity
 
 **Not Allowed:**
 - Any write operations (PUT, POST, DELETE)
