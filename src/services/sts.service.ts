@@ -1,4 +1,5 @@
 import { STSClient, AssumeRoleCommand } from '@aws-sdk/client-sts';
+import { defaultProvider } from '@aws-sdk/credential-provider-node';
 import type { Logger } from '../core/logger.js';
 import type { AssumedRoleCredentials } from '../core/types.js';
 
@@ -10,7 +11,10 @@ export class STSService {
   private logger: Logger;
 
   constructor(region: string, logger: Logger) {
-    this.client = new STSClient({ region });
+    this.client = new STSClient({ 
+      region,
+      credentials: defaultProvider()
+    });
     this.logger = logger;
   }
 
