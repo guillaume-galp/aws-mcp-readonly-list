@@ -1,6 +1,6 @@
 {
   "name": "aws-mcp-readonly-lite",
-  "version": "0.1.14",
+  "version": "1.1.2",
   "description": "Node.js/TypeScript lite AWS MCP tool with readonly permissions to S3 and IAM resources",
   "type": "module",
   "main": "dist/index.js",
