@@ -95,12 +95,7 @@ This MCP server uses the **AWS default credential chain** and supports multiple 
    export AWS_PROFILE=your-sso-profile
    ```
 
-3. **IAM Role** (Automatic when running on AWS)
-   - EC2 instance with IAM role attached
-   - ECS task with IAM role attached
-   - Lambda function with execution role
-
-4. **Shared Credentials File** (~/.aws/credentials)
+3. **Shared Credentials File** (~/.aws/credentials)
    ```ini
    [default]
    aws_access_key_id = YOUR_ACCESS_KEY
@@ -119,16 +114,17 @@ This MCP server uses the **AWS default credential chain** and supports multiple 
 {
   "github.copilot.chat.mcp.enabled": true,
   "github.copilot.chat.mcp.servers": {
-    "aws-readonly": {
-      "command": "npx",
-      "args": [
-        "aws-mcp-readonly-lite"
-      ],
-      "env": {
-        "AWS_REGION": "us-east-1",
-        "LOG_LEVEL": "info"
+      "aws-readonly": {
+         "type": "stdio",
+         "command": "npx",
+         "args": [
+            "aws-mcp-readonly-lite"
+         ],
+         "env": {
+            "AWS_REGION": "eu-west-1",
+            "LOG_LEVEL": "info"
+         }
       }
-    }
   }
 }
 ```
