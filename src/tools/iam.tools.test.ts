@@ -217,5 +217,34 @@ describe('IAMTools', () => {
         })
       ).rejects.toThrow();
     });
+
+    it('should call onRoleAssumed callback when provided', async () => {
+      const mockCredentials = {
+        accessKeyId: 'ASIATESTACCESSKEY',
+        secretAccessKey: 'testSecretAccessKey',
+        sessionToken: 'testSessionToken',
+        expiration: new Date('2024-01-01T12:00:00Z'),
+      };
+
+      mockSTSService.assumeRole.mockResolvedValue(mockCredentials);
+
+      const onRoleAssumed = vi.fn();
+      const iamToolsWithCallback = new IAMTools(
+        mockIAMService,
+        mockSTSService,
+        logger,
+        onRoleAssumed
+      );
+
+      await iamToolsWithCallback.assumeRole({
+        roleArn: 'arn:aws:iam::123456789012:role/test-role',
+      });
+
+      expect(onRoleAssumed).toHaveBeenCalledWith({
+        accessKeyId: 'ASIATESTACCESSKEY',
+        secretAccessKey: 'testSecretAccessKey',
+        sessionToken: 'testSessionToken',
+      });
+    });
   });
 });

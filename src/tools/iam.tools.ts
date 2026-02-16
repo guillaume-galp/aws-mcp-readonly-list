@@ -27,11 +27,26 @@ export class IAMTools {
   private iamService: IAMService;
   private stsService: STSService;
   private logger: Logger;
+  private onRoleAssumed?: (credentials: {
+    accessKeyId: string;
+    secretAccessKey: string;
+    sessionToken: string;
+  }) => void;
 
-  constructor(iamService: IAMService, stsService: STSService, logger: Logger) {
+  constructor(
+    iamService: IAMService,
+    stsService: STSService,
+    logger: Logger,
+    onRoleAssumed?: (credentials: {
+      accessKeyId: string;
+      secretAccessKey: string;
+      sessionToken: string;
+    }) => void
+  ) {
     this.iamService = iamService;
     this.stsService = stsService;
     this.logger = logger;
+    this.onRoleAssumed = onRoleAssumed;
   }
 
   async listUsers(args: unknown): Promise<ListUsersResponse> {
@@ -150,6 +165,15 @@ export class IAMTools {
       input.roleArn,
       input.sessionDuration
     );
+
+    // Update services with new credentials if callback is provided
+    if (this.onRoleAssumed) {
+      this.onRoleAssumed({
+        accessKeyId: credentials.accessKeyId,
+        secretAccessKey: credentials.secretAccessKey,
+        sessionToken: credentials.sessionToken,
+      });
+    }
 
     return {
       roleArn: input.roleArn,

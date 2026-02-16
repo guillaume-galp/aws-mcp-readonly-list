@@ -202,6 +202,9 @@ class MCPServer {
   private s3Tools!: S3Tools;
   private iamTools!: IAMTools;
   private stsService!: STSService;
+  private region!: string;
+  private s3Service!: S3Service;
+  private iamService!: IAMService;
 
   constructor() {
     this.config = new Config();
@@ -222,12 +225,12 @@ class MCPServer {
   }
 
   private async initializeServices(): Promise<void> {
-    const region = this.config.getRegion();
+    this.region = this.config.getRegion();
     const assumeRoleArn = this.config.getAssumeRoleArn();
 
     let credentials = undefined;
 
-    this.stsService = new STSService(region, this.logger);
+    this.stsService = new STSService(this.region, this.logger);
 
     if (assumeRoleArn) {
       this.logger.info('Assuming role', { roleArn: assumeRoleArn });
@@ -242,11 +245,38 @@ class MCPServer {
       };
     }
 
-    const s3Service = new S3Service(region, credentials, this.logger);
-    const iamService = new IAMService(region, credentials, this.logger);
+    this.s3Service = new S3Service(this.region, credentials, this.logger);
+    this.iamService = new IAMService(this.region, credentials, this.logger);
 
-    this.s3Tools = new S3Tools(s3Service, this.logger);
-    this.iamTools = new IAMTools(iamService, this.stsService, this.logger);
+    this.s3Tools = new S3Tools(this.s3Service, this.logger);
+    this.iamTools = new IAMTools(
+      this.iamService,
+      this.stsService,
+      this.logger,
+      (credentials) => this.updateServicesWithCredentials(credentials)
+    );
+  }
+
+  /**
+   * Update services with new credentials after assuming a role
+   */
+  updateServicesWithCredentials(credentials: {
+    accessKeyId: string;
+    secretAccessKey: string;
+    sessionToken: string;
+  }): void {
+    this.logger.info('Updating services with new credentials');
+
+    this.s3Service = new S3Service(this.region, credentials, this.logger);
+    this.iamService = new IAMService(this.region, credentials, this.logger);
+
+    this.s3Tools = new S3Tools(this.s3Service, this.logger);
+    this.iamTools = new IAMTools(
+      this.iamService,
+      this.stsService,
+      this.logger,
+      (credentials) => this.updateServicesWithCredentials(credentials)
+    );
   }
 
   private setupListToolsHandler(): void {
