@@ -25,6 +25,13 @@ export class S3Tools {
     this.logger = logger;
   }
 
+  /**
+   * Update the S3 service instance
+   */
+  updateService(s3Service: S3Service): void {
+    this.s3Service = s3Service;
+  }
+
   async listBuckets(args: unknown): Promise<ListBucketsResponse> {
     ListBucketsInputSchema.parse(args);
     this.logger.info('Tool: list_s3_buckets');

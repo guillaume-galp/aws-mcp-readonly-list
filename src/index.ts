@@ -270,13 +270,9 @@ class MCPServer {
     this.s3Service = new S3Service(this.region, credentials, this.logger);
     this.iamService = new IAMService(this.region, credentials, this.logger);
 
-    this.s3Tools = new S3Tools(this.s3Service, this.logger);
-    this.iamTools = new IAMTools(
-      this.iamService,
-      this.stsService,
-      this.logger,
-      (credentials) => this.updateServicesWithCredentials(credentials)
-    );
+    // Update the service references in the existing tool instances
+    this.s3Tools.updateService(this.s3Service);
+    this.iamTools.updateService(this.iamService);
   }
 
   private setupListToolsHandler(): void {

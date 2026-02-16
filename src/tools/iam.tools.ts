@@ -49,6 +49,13 @@ export class IAMTools {
     this.onRoleAssumed = onRoleAssumed;
   }
 
+  /**
+   * Update the IAM service instance
+   */
+  updateService(iamService: IAMService): void {
+    this.iamService = iamService;
+  }
+
   async listUsers(args: unknown): Promise<ListUsersResponse> {
     const input = ListUsersInputSchema.parse(args);
     this.logger.info('Tool: list_iam_users');
