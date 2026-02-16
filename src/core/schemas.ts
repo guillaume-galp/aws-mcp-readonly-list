@@ -62,3 +62,5 @@ export const AssumeIamRoleInputSchema = z.object({
   roleArn: z.string().min(1, 'Role ARN is required'),
   sessionDuration: z.number().min(900).max(43200).default(3600),
 });
+
+export const GetCallerIdentityInputSchema = z.object({});

@@ -151,3 +151,9 @@ export interface AssumeIamRoleResponse {
   sessionToken: string;
   expiration: string;
 }
+
+export interface GetCallerIdentityResponse {
+  userId: string;
+  account: string;
+  arn: string;
+}

@@ -9,6 +9,7 @@ import type {
   ListPoliciesResponse,
   GetPolicyResponse,
   AssumeIamRoleResponse,
+  GetCallerIdentityResponse,
 } from '../core/types.js';
 import {
   ListUsersInputSchema,
@@ -18,6 +19,7 @@ import {
   ListPoliciesInputSchema,
   GetPolicyInputSchema,
   AssumeIamRoleInputSchema,
+  GetCallerIdentityInputSchema,
 } from '../core/schemas.js';
 
 /**
@@ -192,6 +194,19 @@ export class IAMTools {
       secretAccessKey: credentials.secretAccessKey,
       sessionToken: credentials.sessionToken,
       expiration: credentials.expiration.toISOString(),
+    };
+  }
+
+  async getCallerIdentity(args: unknown): Promise<GetCallerIdentityResponse> {
+    GetCallerIdentityInputSchema.parse(args);
+    this.logger.info('Tool: get_sts_caller_identity');
+
+    const identity = await this.stsService.getCallerIdentity();
+
+    return {
+      userId: identity.userId,
+      account: identity.account,
+      arn: identity.arn,
     };
   }
 }

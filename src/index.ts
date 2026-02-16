@@ -190,6 +190,14 @@ const TOOL_DEFINITIONS: Tool[] = [
       required: ['roleArn'],
     },
   },
+  {
+    name: 'get_sts_caller_identity',
+    description: 'Get the current STS caller identity (user/role being used)',
+    inputSchema: {
+      type: 'object',
+      properties: {},
+    },
+  },
 ];
 
 /**
@@ -308,6 +316,8 @@ class MCPServer {
         return await this.iamTools.getPolicy(args);
       case 'assume_iam_role':
         return await this.iamTools.assumeRole(args);
+      case 'get_sts_caller_identity':
+        return await this.iamTools.getCallerIdentity(args);
       default:
         throw new Error(`Unknown tool: ${name}`);
     }

@@ -20,6 +20,7 @@ describe('IAMTools', () => {
     };
     mockSTSService = {
       assumeRole: vi.fn(),
+      getCallerIdentity: vi.fn(),
     };
     iamTools = new IAMTools(mockIAMService, mockSTSService, logger);
   });
@@ -245,6 +246,40 @@ describe('IAMTools', () => {
         secretAccessKey: 'testSecretAccessKey',
         sessionToken: 'testSessionToken',
       });
+    });
+  });
+
+  describe('getCallerIdentity', () => {
+    it('should get caller identity', async () => {
+      const mockIdentity = {
+        userId: 'AIDAI1234567890EXAMPLE',
+        account: '123456789012',
+        arn: 'arn:aws:iam::123456789012:user/test-user',
+      };
+
+      mockSTSService.getCallerIdentity.mockResolvedValue(mockIdentity);
+
+      const result = await iamTools.getCallerIdentity({});
+
+      expect(result).toHaveProperty('userId', 'AIDAI1234567890EXAMPLE');
+      expect(result).toHaveProperty('account', '123456789012');
+      expect(result).toHaveProperty('arn', 'arn:aws:iam::123456789012:user/test-user');
+      expect(mockSTSService.getCallerIdentity).toHaveBeenCalled();
+    });
+
+    it('should get caller identity for assumed role', async () => {
+      const mockIdentity = {
+        userId: 'AROAI1234567890EXAMPLE:session-name',
+        account: '123456789012',
+        arn: 'arn:aws:sts::123456789012:assumed-role/test-role/session-name',
+      };
+
+      mockSTSService.getCallerIdentity.mockResolvedValue(mockIdentity);
+
+      const result = await iamTools.getCallerIdentity({});
+
+      expect(result).toHaveProperty('userId', 'AROAI1234567890EXAMPLE:session-name');
+      expect(result).toHaveProperty('arn', 'arn:aws:sts::123456789012:assumed-role/test-role/session-name');
     });
   });
 });
