@@ -450,6 +450,7 @@ Assumes an IAM role and returns temporary security credentials.
 **Output:**
 ```json
 {
+  "roleArn": "arn:aws:iam::123456789012:role/MyRole",
   "accessKeyId": "ASIA...",
   "secretAccessKey": "...",
   "sessionToken": "...",
