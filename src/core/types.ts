@@ -143,3 +143,11 @@ export interface GetPolicyResponse {
   createDate?: string;
   description?: string;
 }
+
+export interface AssumeIamRoleResponse {
+  roleArn: string;
+  accessKeyId: string;
+  secretAccessKey: string;
+  sessionToken: string;
+  expiration: string;
+}

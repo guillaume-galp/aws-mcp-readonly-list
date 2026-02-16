@@ -1,4 +1,5 @@
 import type { IAMService } from '../services/iam.service.js';
+import type { STSService } from '../services/sts.service.js';
 import type { Logger } from '../core/logger.js';
 import type {
   ListUsersResponse,
@@ -7,6 +8,7 @@ import type {
   GetRoleResponse,
   ListPoliciesResponse,
   GetPolicyResponse,
+  AssumeIamRoleResponse,
 } from '../core/types.js';
 import {
   ListUsersInputSchema,
@@ -15,6 +17,7 @@ import {
   GetRoleInputSchema,
   ListPoliciesInputSchema,
   GetPolicyInputSchema,
+  AssumeIamRoleInputSchema,
 } from '../core/schemas.js';
 
 /**
@@ -22,10 +25,12 @@ import {
  */
 export class IAMTools {
   private iamService: IAMService;
+  private stsService: STSService;
   private logger: Logger;
 
-  constructor(iamService: IAMService, logger: Logger) {
+  constructor(iamService: IAMService, stsService: STSService, logger: Logger) {
     this.iamService = iamService;
+    this.stsService = stsService;
     this.logger = logger;
   }
 
@@ -131,6 +136,27 @@ export class IAMTools {
       arn: policy.arn,
       createDate: policy.createDate?.toISOString(),
       description: policy.description,
+    };
+  }
+
+  async assumeRole(args: unknown): Promise<AssumeIamRoleResponse> {
+    const input = AssumeIamRoleInputSchema.parse(args);
+    this.logger.info('Tool: assume_iam_role', {
+      roleArn: input.roleArn,
+      sessionDuration: input.sessionDuration,
+    });
+
+    const credentials = await this.stsService.assumeRole(
+      input.roleArn,
+      input.sessionDuration
+    );
+
+    return {
+      roleArn: input.roleArn,
+      accessKeyId: credentials.accessKeyId,
+      secretAccessKey: credentials.secretAccessKey,
+      sessionToken: credentials.sessionToken,
+      expiration: credentials.expiration.toISOString(),
     };
   }
 }

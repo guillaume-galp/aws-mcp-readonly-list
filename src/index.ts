@@ -171,6 +171,25 @@ const TOOL_DEFINITIONS: Tool[] = [
       required: ['policyArn'],
     },
   },
+  {
+    name: 'assume_iam_role',
+    description: 'Assume an IAM role and get temporary security credentials',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        roleArn: {
+          type: 'string',
+          description: 'The ARN of the IAM role to assume',
+        },
+        sessionDuration: {
+          type: 'number',
+          description: 'The duration in seconds for the session (900-43200)',
+          default: 3600,
+        },
+      },
+      required: ['roleArn'],
+    },
+  },
 ];
 
 /**
@@ -182,6 +201,7 @@ class MCPServer {
   private logger: ReturnType<typeof createLogger>;
   private s3Tools!: S3Tools;
   private iamTools!: IAMTools;
+  private stsService!: STSService;
 
   constructor() {
     this.config = new Config();
@@ -207,10 +227,11 @@ class MCPServer {
 
     let credentials = undefined;
 
+    this.stsService = new STSService(region, this.logger);
+
     if (assumeRoleArn) {
       this.logger.info('Assuming role', { roleArn: assumeRoleArn });
-      const stsService = new STSService(region, this.logger);
-      const creds = await stsService.assumeRole(
+      const creds = await this.stsService.assumeRole(
         assumeRoleArn,
         this.config.getSessionDuration()
       );
@@ -225,7 +246,7 @@ class MCPServer {
     const iamService = new IAMService(region, credentials, this.logger);
 
     this.s3Tools = new S3Tools(s3Service, this.logger);
-    this.iamTools = new IAMTools(iamService, this.logger);
+    this.iamTools = new IAMTools(iamService, this.stsService, this.logger);
   }
 
   private setupListToolsHandler(): void {
@@ -256,6 +277,8 @@ class MCPServer {
         return await this.iamTools.listPolicies(args);
       case 'get_iam_policy':
         return await this.iamTools.getPolicy(args);
+      case 'assume_iam_role':
+        return await this.iamTools.assumeRole(args);
       default:
         throw new Error(`Unknown tool: ${name}`);
     }

@@ -57,3 +57,8 @@ export const ListPoliciesInputSchema = z.object({
 export const GetPolicyInputSchema = z.object({
   policyArn: z.string().min(1, 'Policy ARN is required'),
 });
+
+export const AssumeIamRoleInputSchema = z.object({
+  roleArn: z.string().min(1, 'Role ARN is required'),
+  sessionDuration: z.number().min(900).max(43200).default(3600),
+});
