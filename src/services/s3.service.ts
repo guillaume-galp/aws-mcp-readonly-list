@@ -5,6 +5,7 @@ import {
   GetObjectCommand,
   GetBucketPolicyCommand,
 } from '@aws-sdk/client-s3';
+import { defaultProvider } from '@aws-sdk/credential-provider-node';
 import type { AwsCredentialIdentity } from '@aws-sdk/types';
 import type { Logger } from '../core/logger.js';
 import type { S3BucketInfo, S3ObjectInfo } from '../core/types.js';
@@ -23,7 +24,7 @@ export class S3Service {
   ) {
     this.client = new S3Client({
       region,
-      credentials,
+      credentials: credentials || defaultProvider(),
     });
     this.logger = logger;
   }

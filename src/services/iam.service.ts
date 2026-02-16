@@ -7,6 +7,7 @@ import {
   ListPoliciesCommand,
   GetPolicyCommand,
 } from '@aws-sdk/client-iam';
+import { defaultProvider } from '@aws-sdk/credential-provider-node';
 import type { AwsCredentialIdentity } from '@aws-sdk/types';
 import type { Logger } from '../core/logger.js';
 import type {
@@ -29,7 +30,7 @@ export class IAMService {
   ) {
     this.client = new IAMClient({
       region,
-      credentials,
+      credentials: credentials || defaultProvider(),
     });
     this.logger = logger;
   }

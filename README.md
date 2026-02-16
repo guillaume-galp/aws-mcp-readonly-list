@@ -70,25 +70,44 @@ LOG_LEVEL=info
 
 ### Step 2: Configure AWS Credentials
 
-Ensure your AWS credentials are configured. Choose one of these methods:
+This MCP server uses the **AWS default credential chain** and supports multiple authentication methods:
 
-**Option 1: AWS Credentials File** (Recommended)
-```bash
-# Configure using AWS CLI
-aws configure
+**Recommended Options:**
 
-# Or manually edit ~/.aws/credentials
-[default]
-aws_access_key_id = YOUR_ACCESS_KEY
-aws_secret_access_key = YOUR_SECRET_KEY
-```
+1. **AWS CLI Profile** (Best for local development)
+   ```bash
+   # Configure using AWS CLI
+   aws configure
+   
+   # Or use a specific profile
+   export AWS_PROFILE=your-profile-name
+   ```
 
-**Option 2: Environment Variables**
-```bash
-export AWS_ACCESS_KEY_ID=YOUR_ACCESS_KEY
-export AWS_SECRET_ACCESS_KEY=YOUR_SECRET_KEY
-export AWS_REGION=us-east-1
-```
+2. **AWS SSO** (Best for enterprise environments)
+   ```bash
+   # Configure SSO
+   aws configure sso
+   
+   # Login to SSO
+   aws sso login --profile your-sso-profile
+   
+   # Use the SSO profile
+   export AWS_PROFILE=your-sso-profile
+   ```
+
+3. **IAM Role** (Automatic when running on AWS)
+   - EC2 instance with IAM role attached
+   - ECS task with IAM role attached
+   - Lambda function with execution role
+
+4. **Shared Credentials File** (~/.aws/credentials)
+   ```ini
+   [default]
+   aws_access_key_id = YOUR_ACCESS_KEY
+   aws_secret_access_key = YOUR_SECRET_KEY
+   ```
+
+**Note:** The server never requires hardcoded credentials in environment variables or configuration files. It automatically discovers credentials through the AWS SDK's standard credential chain.
 
 ### Step 3: Configure MCP in VSCode Settings
 
@@ -132,6 +151,8 @@ export AWS_REGION=us-east-1
 
 **AWS credentials not working?**
 - Verify credentials with: `aws sts get-caller-identity`
+- For AWS_PROFILE: `AWS_PROFILE=your-profile aws sts get-caller-identity`
+- For SSO: Ensure you're logged in with `aws sso login --profile your-profile`
 - Check that AWS_REGION is set correctly
 - Ensure your IAM user/role has read permissions for S3 and IAM
 
@@ -160,11 +181,22 @@ LOG_LEVEL=info  # error|warn|info|debug
 
 ### AWS Credentials
 
-AWS credentials are obtained via the standard AWS credential chain:
-1. Environment variables (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
-2. Shared credentials file (~/.aws/credentials)
-3. IAM role (when running on EC2/ECS)
-4. Assumed role (when AWS_ASSUME_ROLE_ARN is set)
+AWS credentials are automatically obtained via the **AWS SDK default credential chain**, which checks the following sources in order:
+
+1. **Environment variables** (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_SESSION_TOKEN)
+2. **AWS_PROFILE** environment variable to use a specific profile
+3. **Shared credentials file** (~/.aws/credentials)
+4. **Shared configuration file** (~/.aws/config) for SSO profiles
+5. **IAM role** (when running on EC2/ECS)
+6. **Assumed role** (when AWS_ASSUME_ROLE_ARN is set)
+
+**This design ensures:**
+- ✅ Support for AWS_PROFILE
+- ✅ Support for AWS SSO
+- ✅ Local development friendly
+- ✅ CI/CD friendly
+- ✅ Cloud-native (works on EC2/ECS)
+- ✅ Secure by design (no hardcoded credentials required)
 
 ## Development
 
