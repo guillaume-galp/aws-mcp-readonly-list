@@ -1,4 +1,5 @@
 import type { IAMService } from '../services/iam.service.js';
+import type { STSService } from '../services/sts.service.js';
 import type { Logger } from '../core/logger.js';
 import type {
   ListUsersResponse,
@@ -7,6 +8,8 @@ import type {
   GetRoleResponse,
   ListPoliciesResponse,
   GetPolicyResponse,
+  AssumeIamRoleResponse,
+  GetCallerIdentityResponse,
 } from '../core/types.js';
 import {
   ListUsersInputSchema,
@@ -15,6 +18,8 @@ import {
   GetRoleInputSchema,
   ListPoliciesInputSchema,
   GetPolicyInputSchema,
+  AssumeIamRoleInputSchema,
+  GetCallerIdentityInputSchema,
 } from '../core/schemas.js';
 
 /**
@@ -22,11 +27,39 @@ import {
  */
 export class IAMTools {
   private iamService: IAMService;
+  private stsService: STSService;
   private logger: Logger;
+  private onRoleAssumed?: (credentials: {
+    accessKeyId: string;
+    secretAccessKey: string;
+    sessionToken: string;
+  }) => void;
 
-  constructor(iamService: IAMService, logger: Logger) {
+  constructor(
+    iamService: IAMService,
+    stsService: STSService,
+    logger: Logger,
+    onRoleAssumed?: (credentials: {
+      accessKeyId: string;
+      secretAccessKey: string;
+      sessionToken: string;
+    }) => void
+  ) {
     this.iamService = iamService;
+    this.stsService = stsService;
     this.logger = logger;
+    this.onRoleAssumed = onRoleAssumed;
+  }
+
+  /**
+   * Update the IAM service instance with new credentials.
+   * Called after assuming a new IAM role to ensure subsequent
+   * IAM operations use the new role's permissions.
+   * Note: STS service is not updated as it's only used for role assumption,
+   * not for operations requiring assumed credentials.
+   */
+  updateService(iamService: IAMService): void {
+    this.iamService = iamService;
   }
 
   async listUsers(args: unknown): Promise<ListUsersResponse> {
@@ -131,6 +164,49 @@ export class IAMTools {
       arn: policy.arn,
       createDate: policy.createDate?.toISOString(),
       description: policy.description,
+    };
+  }
+
+  async assumeRole(args: unknown): Promise<AssumeIamRoleResponse> {
+    const input = AssumeIamRoleInputSchema.parse(args);
+    this.logger.info('Tool: assume_iam_role', {
+      roleArn: input.roleArn,
+      sessionDuration: input.sessionDuration,
+    });
+
+    const credentials = await this.stsService.assumeRole(
+      input.roleArn,
+      input.sessionDuration
+    );
+
+    // Update services with new credentials if callback is provided
+    if (this.onRoleAssumed) {
+      this.onRoleAssumed({
+        accessKeyId: credentials.accessKeyId,
+        secretAccessKey: credentials.secretAccessKey,
+        sessionToken: credentials.sessionToken,
+      });
+    }
+
+    return {
+      roleArn: input.roleArn,
+      accessKeyId: credentials.accessKeyId,
+      secretAccessKey: credentials.secretAccessKey,
+      sessionToken: credentials.sessionToken,
+      expiration: credentials.expiration.toISOString(),
+    };
+  }
+
+  async getCallerIdentity(args: unknown): Promise<GetCallerIdentityResponse> {
+    GetCallerIdentityInputSchema.parse(args);
+    this.logger.info('Tool: get_sts_caller_identity');
+
+    const identity = await this.stsService.getCallerIdentity();
+
+    return {
+      userId: identity.userId,
+      account: identity.account,
+      arn: identity.arn,
     };
   }
 }

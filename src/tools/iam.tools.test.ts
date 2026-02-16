@@ -5,6 +5,7 @@ import { createLogger } from '../core/logger.js';
 describe('IAMTools', () => {
   let iamTools: IAMTools;
   let mockIAMService: any;
+  let mockSTSService: any;
   let logger: ReturnType<typeof createLogger>;
 
   beforeEach(() => {
@@ -17,7 +18,11 @@ describe('IAMTools', () => {
       listPolicies: vi.fn(),
       getPolicy: vi.fn(),
     };
-    iamTools = new IAMTools(mockIAMService, logger);
+    mockSTSService = {
+      assumeRole: vi.fn(),
+      getCallerIdentity: vi.fn(),
+    };
+    iamTools = new IAMTools(mockIAMService, mockSTSService, logger);
   });
 
   describe('listUsers', () => {
@@ -143,6 +148,138 @@ describe('IAMTools', () => {
 
     it('should validate input', async () => {
       await expect(iamTools.getPolicy({ policyArn: '' })).rejects.toThrow();
+    });
+  });
+
+  describe('assumeRole', () => {
+    it('should assume role with default session duration', async () => {
+      const mockCredentials = {
+        accessKeyId: 'ASIATESTACCESSKEY',
+        secretAccessKey: 'testSecretAccessKey',
+        sessionToken: 'testSessionToken',
+        expiration: new Date('2024-01-01T12:00:00Z'),
+      };
+
+      mockSTSService.assumeRole.mockResolvedValue(mockCredentials);
+
+      const result = await iamTools.assumeRole({
+        roleArn: 'arn:aws:iam::123456789012:role/test-role',
+      });
+
+      expect(result).toHaveProperty('roleArn', 'arn:aws:iam::123456789012:role/test-role');
+      expect(result).toHaveProperty('accessKeyId', 'ASIATESTACCESSKEY');
+      expect(result).toHaveProperty('secretAccessKey', 'testSecretAccessKey');
+      expect(result).toHaveProperty('sessionToken', 'testSessionToken');
+      expect(result).toHaveProperty('expiration', '2024-01-01T12:00:00.000Z');
+      expect(mockSTSService.assumeRole).toHaveBeenCalledWith(
+        'arn:aws:iam::123456789012:role/test-role',
+        3600
+      );
+    });
+
+    it('should assume role with custom session duration', async () => {
+      const mockCredentials = {
+        accessKeyId: 'ASIATESTACCESSKEY',
+        secretAccessKey: 'testSecretAccessKey',
+        sessionToken: 'testSessionToken',
+        expiration: new Date('2024-01-01T12:00:00Z'),
+      };
+
+      mockSTSService.assumeRole.mockResolvedValue(mockCredentials);
+
+      const result = await iamTools.assumeRole({
+        roleArn: 'arn:aws:iam::123456789012:role/test-role',
+        sessionDuration: 7200,
+      });
+
+      expect(result).toHaveProperty('roleArn', 'arn:aws:iam::123456789012:role/test-role');
+      expect(mockSTSService.assumeRole).toHaveBeenCalledWith(
+        'arn:aws:iam::123456789012:role/test-role',
+        7200
+      );
+    });
+
+    it('should validate roleArn is required', async () => {
+      await expect(iamTools.assumeRole({ roleArn: '' })).rejects.toThrow();
+    });
+
+    it('should validate session duration is within range', async () => {
+      await expect(
+        iamTools.assumeRole({
+          roleArn: 'arn:aws:iam::123456789012:role/test-role',
+          sessionDuration: 100, // Too low
+        })
+      ).rejects.toThrow();
+
+      await expect(
+        iamTools.assumeRole({
+          roleArn: 'arn:aws:iam::123456789012:role/test-role',
+          sessionDuration: 50000, // Too high
+        })
+      ).rejects.toThrow();
+    });
+
+    it('should call onRoleAssumed callback when provided', async () => {
+      const mockCredentials = {
+        accessKeyId: 'ASIATESTACCESSKEY',
+        secretAccessKey: 'testSecretAccessKey',
+        sessionToken: 'testSessionToken',
+        expiration: new Date('2024-01-01T12:00:00Z'),
+      };
+
+      mockSTSService.assumeRole.mockResolvedValue(mockCredentials);
+
+      const onRoleAssumed = vi.fn();
+      const iamToolsWithCallback = new IAMTools(
+        mockIAMService,
+        mockSTSService,
+        logger,
+        onRoleAssumed
+      );
+
+      await iamToolsWithCallback.assumeRole({
+        roleArn: 'arn:aws:iam::123456789012:role/test-role',
+      });
+
+      expect(onRoleAssumed).toHaveBeenCalledWith({
+        accessKeyId: 'ASIATESTACCESSKEY',
+        secretAccessKey: 'testSecretAccessKey',
+        sessionToken: 'testSessionToken',
+      });
+    });
+  });
+
+  describe('getCallerIdentity', () => {
+    it('should get caller identity', async () => {
+      const mockIdentity = {
+        userId: 'AIDAI1234567890EXAMPLE',
+        account: '123456789012',
+        arn: 'arn:aws:iam::123456789012:user/test-user',
+      };
+
+      mockSTSService.getCallerIdentity.mockResolvedValue(mockIdentity);
+
+      const result = await iamTools.getCallerIdentity({});
+
+      expect(result).toHaveProperty('userId', 'AIDAI1234567890EXAMPLE');
+      expect(result).toHaveProperty('account', '123456789012');
+      expect(result).toHaveProperty('arn', 'arn:aws:iam::123456789012:user/test-user');
+      expect(mockSTSService.getCallerIdentity).toHaveBeenCalled();
+    });
+
+    it('should get caller identity for assumed role', async () => {
+      const mockIdentity = {
+        userId: 'AROAI1234567890EXAMPLE:session-name',
+        account: '123456789012',
+        arn: 'arn:aws:sts::123456789012:assumed-role/test-role/session-name',
+      };
+
+      mockSTSService.getCallerIdentity.mockResolvedValue(mockIdentity);
+
+      const result = await iamTools.getCallerIdentity({});
+
+      expect(result).toHaveProperty('userId', 'AROAI1234567890EXAMPLE:session-name');
+      expect(result).toHaveProperty('arn', 'arn:aws:sts::123456789012:assumed-role/test-role/session-name');
     });
   });
 });

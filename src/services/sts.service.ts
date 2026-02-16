@@ -1,4 +1,8 @@
-import { STSClient, AssumeRoleCommand } from '@aws-sdk/client-sts';
+import {
+  STSClient,
+  AssumeRoleCommand,
+  GetCallerIdentityCommand,
+} from '@aws-sdk/client-sts';
 import { defaultProvider } from '@aws-sdk/credential-provider-node';
 import type { Logger } from '../core/logger.js';
 import type { AssumedRoleCredentials } from '../core/types.js';
@@ -45,6 +49,30 @@ export class STSService {
       };
     } catch (error) {
       this.logger.error('Failed to assume role', {
+        error: error instanceof Error ? error.message : String(error),
+      });
+      throw error;
+    }
+  }
+
+  async getCallerIdentity(): Promise<{
+    userId: string;
+    account: string;
+    arn: string;
+  }> {
+    this.logger.info('Getting caller identity');
+
+    try {
+      const command = new GetCallerIdentityCommand({});
+      const response = await this.client.send(command);
+
+      return {
+        userId: response.UserId || 'unknown',
+        account: response.Account || 'unknown',
+        arn: response.Arn || 'unknown',
+      };
+    } catch (error) {
+      this.logger.error('Failed to get caller identity', {
         error: error instanceof Error ? error.message : String(error),
       });
       throw error;

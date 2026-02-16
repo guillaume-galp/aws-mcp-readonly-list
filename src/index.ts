@@ -171,6 +171,33 @@ const TOOL_DEFINITIONS: Tool[] = [
       required: ['policyArn'],
     },
   },
+  {
+    name: 'assume_iam_role',
+    description: 'Assume an IAM role and get temporary security credentials',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        roleArn: {
+          type: 'string',
+          description: 'The ARN of the IAM role to assume',
+        },
+        sessionDuration: {
+          type: 'number',
+          description: 'The duration in seconds for the session (900-43200)',
+          default: 3600,
+        },
+      },
+      required: ['roleArn'],
+    },
+  },
+  {
+    name: 'get_sts_caller_identity',
+    description: 'Get the current STS caller identity (user/role being used)',
+    inputSchema: {
+      type: 'object',
+      properties: {},
+    },
+  },
 ];
 
 /**
@@ -182,6 +209,10 @@ class MCPServer {
   private logger: ReturnType<typeof createLogger>;
   private s3Tools!: S3Tools;
   private iamTools!: IAMTools;
+  private stsService!: STSService;
+  private region!: string;
+  private s3Service!: S3Service;
+  private iamService!: IAMService;
 
   constructor() {
     this.config = new Config();
@@ -202,15 +233,16 @@ class MCPServer {
   }
 
   private async initializeServices(): Promise<void> {
-    const region = this.config.getRegion();
+    this.region = this.config.getRegion();
     const assumeRoleArn = this.config.getAssumeRoleArn();
 
     let credentials = undefined;
 
+    this.stsService = new STSService(this.region, this.logger);
+
     if (assumeRoleArn) {
       this.logger.info('Assuming role', { roleArn: assumeRoleArn });
-      const stsService = new STSService(region, this.logger);
-      const creds = await stsService.assumeRole(
+      const creds = await this.stsService.assumeRole(
         assumeRoleArn,
         this.config.getSessionDuration()
       );
@@ -221,11 +253,37 @@ class MCPServer {
       };
     }
 
-    const s3Service = new S3Service(region, credentials, this.logger);
-    const iamService = new IAMService(region, credentials, this.logger);
+    this.s3Service = new S3Service(this.region, credentials, this.logger);
+    this.iamService = new IAMService(this.region, credentials, this.logger);
 
-    this.s3Tools = new S3Tools(s3Service, this.logger);
-    this.iamTools = new IAMTools(iamService, this.logger);
+    this.s3Tools = new S3Tools(this.s3Service, this.logger);
+    this.iamTools = new IAMTools(
+      this.iamService,
+      this.stsService,
+      this.logger,
+      (credentials) => this.updateServicesWithCredentials(credentials)
+    );
+  }
+
+  /**
+   * Update services with new credentials after assuming a role.
+   * This recreates S3 and IAM service instances with the new credentials
+   * and updates the existing tool instances to use these new services.
+   * Note: MCP protocol processes requests sequentially, so no locking is needed.
+   */
+  updateServicesWithCredentials(credentials: {
+    accessKeyId: string;
+    secretAccessKey: string;
+    sessionToken: string;
+  }): void {
+    this.logger.info('Updating services with new credentials');
+
+    this.s3Service = new S3Service(this.region, credentials, this.logger);
+    this.iamService = new IAMService(this.region, credentials, this.logger);
+
+    // Update the service references in the existing tool instances
+    this.s3Tools.updateService(this.s3Service);
+    this.iamTools.updateService(this.iamService);
   }
 
   private setupListToolsHandler(): void {
@@ -256,6 +314,10 @@ class MCPServer {
         return await this.iamTools.listPolicies(args);
       case 'get_iam_policy':
         return await this.iamTools.getPolicy(args);
+      case 'assume_iam_role':
+        return await this.iamTools.assumeRole(args);
+      case 'get_sts_caller_identity':
+        return await this.iamTools.getCallerIdentity(args);
       default:
         throw new Error(`Unknown tool: ${name}`);
     }

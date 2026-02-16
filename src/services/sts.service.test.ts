@@ -6,6 +6,7 @@ import { STSClient } from '@aws-sdk/client-sts';
 vi.mock('@aws-sdk/client-sts', () => ({
   STSClient: vi.fn(),
   AssumeRoleCommand: vi.fn(),
+  GetCallerIdentityCommand: vi.fn(),
 }));
 
 vi.mock('@aws-sdk/credential-provider-node', () => ({
@@ -63,5 +64,39 @@ describe('STSService', () => {
     await expect(
       stsService.assumeRole('arn:aws:iam::123456789012:role/test', 3600)
     ).rejects.toThrow('Access denied');
+  });
+
+  it('should get caller identity successfully', async () => {
+    const mockIdentity = {
+      UserId: 'AIDAI1234567890EXAMPLE',
+      Account: '123456789012',
+      Arn: 'arn:aws:iam::123456789012:user/test-user',
+    };
+
+    mockSend.mockResolvedValue(mockIdentity);
+
+    const result = await stsService.getCallerIdentity();
+
+    expect(result.userId).toBe('AIDAI1234567890EXAMPLE');
+    expect(result.account).toBe('123456789012');
+    expect(result.arn).toBe('arn:aws:iam::123456789012:user/test-user');
+  });
+
+  it('should handle missing fields in caller identity', async () => {
+    mockSend.mockResolvedValue({});
+
+    const result = await stsService.getCallerIdentity();
+
+    expect(result.userId).toBe('unknown');
+    expect(result.account).toBe('unknown');
+    expect(result.arn).toBe('unknown');
+  });
+
+  it('should handle caller identity errors', async () => {
+    mockSend.mockRejectedValue(new Error('Access denied'));
+
+    await expect(stsService.getCallerIdentity()).rejects.toThrow(
+      'Access denied'
+    );
   });
 });
