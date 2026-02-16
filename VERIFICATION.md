@@ -11,7 +11,7 @@
 - Implements Model Context Protocol
 - Uses `@modelcontextprotocol/sdk` version 1.0.4
 - Stdio transport for communication
-- 10 tools exposed (4 S3 + 6 IAM)
+- 12 tools exposed (4 S3 + 6 IAM + 2 STS)
 
 ### ✅ Read-Only AWS Operations
 **S3 Tools:**
@@ -28,8 +28,9 @@
 - list_iam_policies
 - get_iam_policy
 
-**STS:**
-- AssumeRole (for authentication only)
+**STS Tools:**
+- assume_iam_role
+- get_sts_caller_identity
 
 ### ✅ AWS SDK v3
 - @aws-sdk/client-s3: ^3.705.0
