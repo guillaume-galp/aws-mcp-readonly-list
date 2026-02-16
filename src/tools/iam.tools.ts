@@ -50,7 +50,11 @@ export class IAMTools {
   }
 
   /**
-   * Update the IAM service instance
+   * Update the IAM service instance with new credentials.
+   * Called after assuming a new IAM role to ensure subsequent
+   * IAM operations use the new role's permissions.
+   * Note: STS service is not updated as it's only used for role assumption,
+   * not for operations requiring assumed credentials.
    */
   updateService(iamService: IAMService): void {
     this.iamService = iamService;

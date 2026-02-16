@@ -258,7 +258,10 @@ class MCPServer {
   }
 
   /**
-   * Update services with new credentials after assuming a role
+   * Update services with new credentials after assuming a role.
+   * This recreates S3 and IAM service instances with the new credentials
+   * and updates the existing tool instances to use these new services.
+   * Note: MCP protocol processes requests sequentially, so no locking is needed.
    */
   updateServicesWithCredentials(credentials: {
     accessKeyId: string;
