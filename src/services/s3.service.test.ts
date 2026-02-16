@@ -11,6 +11,10 @@ vi.mock('@aws-sdk/client-s3', () => ({
   GetBucketPolicyCommand: vi.fn(),
 }));
 
+vi.mock('@aws-sdk/credential-provider-node', () => ({
+  defaultProvider: vi.fn(() => vi.fn()),
+}));
+
 describe('S3Service', () => {
   let s3Service: S3Service;
   let logger: ReturnType<typeof createLogger>;

@@ -8,6 +8,10 @@ vi.mock('@aws-sdk/client-sts', () => ({
   AssumeRoleCommand: vi.fn(),
 }));
 
+vi.mock('@aws-sdk/credential-provider-node', () => ({
+  defaultProvider: vi.fn(() => vi.fn()),
+}));
+
 describe('STSService', () => {
   let stsService: STSService;
   let logger: ReturnType<typeof createLogger>;
