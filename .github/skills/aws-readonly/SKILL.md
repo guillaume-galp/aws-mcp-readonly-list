@@ -73,14 +73,12 @@ mcp_aws-readonly_assume_iam_role(
 
 Known AWS accounts (update as needed):
 
-- **Management (mgt)**: 375346921771
-- **Sandbox (deaas01)**: 396039531712
-- **Sandbox (deaas04)**: 135260978790
-- **Quality (qua)**: 073284295214
-- **Preprod (pre)**: 008978860536
-- **Prod (prd)**: 981606773328
-- **Prod Legacy (lgc)**: 836496312209
-- **Cortex (cortex)**: 288761772474
+- **Management (mgt)**: *****replace with account number*****
+- **Quality (qua)**: *****replace with account number*****
+- **Preprod (pre)**: *****replace with account number*****
+- **Prod (prd)**: *****replace with account number*****
+- **Prod Legacy (lgc)**: *****replace with account number*****
+
 
 ## Cross-Account Access Pattern
 

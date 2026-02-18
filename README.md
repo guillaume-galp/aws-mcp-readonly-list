@@ -2,6 +2,14 @@
 
 A Node.js/TypeScript lite AWS MCP (Model Context Protocol) server with read-only permissions to S3 and IAM resources, designed for safe local use in your favorite IDE.
 
+You may switch accounts by assuming a role with the `mcp_aws-readonly_assume_iam_role` tool, or by configuring your AWS CLI profiles and using the `AWS_PROFILE` environment variable.
+
+Configure the skill in `.github/skills/aws-readonly/SKILL.md` in your IDE to use this MCP server, and then you can ask questions like:
+
+- switch to the quality account and list S3 buckets
+- show me the IAM users in the preprod account
+- get the contents of a file in the prod account
+
 ## Features
 
 - ✅ **Read-only AWS Access**: Safe exploration of S3 and IAM resources
@@ -58,7 +66,7 @@ Create a `.env` file in the project root (or set system environment variables):
 
 ```bash
 # Required
-AWS_REGION=us-east-1
+AWS_REGION=eu-west-1
 
 # Optional - for role assumption
 # AWS_ASSUME_ROLE_ARN=arn:aws:iam::123456789012:role/ReadOnlyRole
@@ -78,7 +86,7 @@ This MCP server uses the **AWS default credential chain** and supports multiple 
    ```bash
    # Configure using AWS CLI
    aws configure
-   
+
    # Or use a specific profile
    export AWS_PROFILE=your-profile-name
    ```
@@ -87,10 +95,10 @@ This MCP server uses the **AWS default credential chain** and supports multiple 
    ```bash
    # Configure SSO
    aws configure sso
-   
+
    # Login to SSO
    aws sso login --profile your-sso-profile
-   
+
    # Use the SSO profile
    export AWS_PROFILE=your-sso-profile
    ```
@@ -112,19 +120,19 @@ This MCP server uses the **AWS default credential chain** and supports multiple 
 
 ```json
 {
-  "github.copilot.chat.mcp.enabled": true,
-  "github.copilot.chat.mcp.servers": {
-      "aws-readonly": {
-         "type": "stdio",
-         "command": "npx",
-         "args": [
-            "aws-mcp-readonly-lite"
-         ],
-         "env": {
-            "AWS_REGION": "eu-west-1",
-            "LOG_LEVEL": "info"
-         }
-      }
+  "servers": {
+		"aws-readonly": {
+			"type": "stdio",
+			"command": "npx",
+			"args": [
+				"aws-mcp-readonly-lite@1.1.2"
+			],
+			"env": {
+				"AWS_REGION": "eu-west-1",
+				"LOG_LEVEL": "info",
+				"AWS_PROFILE": "cross-mgmt"
+			}
+		}
   }
 }
 ```
@@ -165,7 +173,7 @@ Configure via environment variables or `.env` file:
 
 ```bash
 # Required
-AWS_REGION=us-east-1
+AWS_REGION=eu-west-1
 
 # Optional - for role assumption
 AWS_ASSUME_ROLE_ARN=arn:aws:iam::123456789012:role/ReadOnlyRole
@@ -187,6 +195,7 @@ AWS credentials are automatically obtained via the **AWS SDK default credential 
 6. **Assumed role** (when AWS_ASSUME_ROLE_ARN is set)
 
 **This design ensures:**
+
 - ✅ Support for AWS_PROFILE
 - ✅ Support for AWS SSO
 - ✅ Local development friendly
@@ -201,17 +210,20 @@ AWS credentials are automatically obtained via the **AWS SDK default credential 
 ### Local Setup
 
 1. Clone this repository:
+
    ```bash
    git clone https://github.com/guillaume-galp/aws-mcp-readonly-list.git
    cd aws-mcp-readonly-list
    ```
 
 2. Install dependencies:
+
    ```bash
    npm install
    ```
 
 3. Build the project:
+
    ```bash
    npm run build
    ```
@@ -270,11 +282,13 @@ src/
 ### S3 Tools
 
 #### list_s3_buckets
+
 Lists all S3 buckets in the AWS account.
 
 **Input:** None
 
 **Output:**
+
 ```json
 {
   "buckets": [
@@ -288,9 +302,11 @@ Lists all S3 buckets in the AWS account.
 ```
 
 #### list_s3_objects
+
 Lists objects in an S3 bucket.
 
 **Input:**
+
 ```json
 {
   "bucket": "my-bucket",
@@ -300,6 +316,7 @@ Lists objects in an S3 bucket.
 ```
 
 **Output:**
+
 ```json
 {
   "bucket": "my-bucket",
